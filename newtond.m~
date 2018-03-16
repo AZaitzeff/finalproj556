@@ -1,0 +1,18 @@
+function newtond(A,b,t,x0,d)
+[m,n]=size(A);
+K=n/d;
+MAXITERS = 1000;
+x=x0;
+phi=zeros(1,K);
+Hessb= t*(A'*A);
+for iter = 1:MAXITERS
+    grad = t*2*(A'*A*x-A'*b);
+    Hess= Hessb;
+    for i=1:K
+        phi(i)=-log(1-sum(x((i-1)*d+1:i*d).^2));
+        grad((i-1)*d+1:i*d)=grad((i-1)*d+1:i*d)+2*phi(i)*x((i-1)*d+1:i*d);
+        Hess((i-1)*d+1:i*d,(i-1)*d+1:i*d)=Hess((i-1)*d+1:i*d,(i-1)*d+1:i*d)+4*(x'*x')/phi(i)^2+2/phi(i)*eye(d);
+    end
+
+
+end
