@@ -1,12 +1,14 @@
-z=rand(3,10,4);
-d=rand(5,4);
+function [z,d,val,t]=skecting(y,D,K,alpha,z0,d0)
+%TO DO right now it only works for vectors. Needs to implement skecting
+[N,L]=size(y);
+%z=zeros(L,N,K);
+%d=zeros(D,K);
+z=z0;
+d=d0;
 
-D=size(d,1);
-K=size(z,3);
-N=size(z,2);
-L=size(z,1);
-dflat=reshape(d,[D*K 1]);
-zflat=reshape(z(1,:,:),[N*K 1]);
+%dflat=reshape(d,[D*K 1]);
+%zflat=reshape(z(1,:,:),[N*K 1]);
+tol=1e-4;
 MAXITER=1000;
 for t=1:MAXITER
     Ad=zeros(N,N*K);
@@ -16,10 +18,10 @@ for t=1:MAXITER
     end
     for i=1:L
         zflat=reshape(z(i,:,:),[N*K 1]);
-        zflat=lsonecnsrt(Ad,y(i,:),L,zflat);
-        z(i,:,:)=zflat;
+        zflat=lsonecnsrt(Ad,y(:,i),alpha,zflat);%solves ||y-Dz||^2_2 with constraint on z.
+        z(i,:,:)=reshape(zflat, [N K]);
     end
-    Az=zeros(N*L,D*K);
+    Az=zeros(N*L,D*K);%convolution Matrix z
     for j=1:L
         for i=1:K
             ztemp=reshape(z(j,:,i),[1 N]);
@@ -28,7 +30,15 @@ for t=1:MAXITER
         end
     end
     dflat=reshape(d,[D*K 1]);
-    yflat=reshape(d,[N*L 1]);
-    dflat=logbarrier(Az,yflat,dflat,2,D);
+    yflat=reshape(y,[N*L 1]);
+    dflat=logbarrier(Az,yflat,dflat,10,D);%solves ||y-Zd||^2_2 with constraint on d. uses barrier method that I implemented
+    d=reshape(dflat,[D K]);
+    val=sum((yflat-Az*dflat).^2);
+    %chng=sum((d(:)-d0(:)).^2)+sum((z(:)-z0(:)).^2);
+    if val<tol
+        break;
+    end
+    %d0=d;
+    %z0=z;
 end
 
