@@ -9,34 +9,48 @@ NTTOL = 5e-6;
 x=x0;
 phi=zeros(1,K);
 vals=zeros(1,K);
-Hessb= t*(A'*A);
+
+AA=A'*A;
+Ab=A'*b;
+Hessb= t*(AA);
+%gradb = t*2*(A'*A*x-A'*b);
 for iter = 1:MAXITERS
-    grad = t*2*(A'*A*x-A'*b);
+    xtemp=reshape(x,[D,K]);
+    vals=sum(xtemp.^2,1);
+    val=t*x'*(AA*x-2*A'*b)-sum(log(1-vals));
+    grad = t*2*(AA*x-Ab);
     Hess= Hessb;
+    phi=1-vals;
     for i=1:K
-        phi(i)=-log(1-sum(x((i-1)*D+1:i*D).^2));
-        grad((i-1)*D+1:i*D)=grad((i-1)*D+1:i*D)+2*phi(i)*x((i-1)*D+1:i*D);
+        %phi(i)=(1-sum(x((i-1)*D+1:i*D).^2));
+        grad((i-1)*D+1:i*D)=grad((i-1)*D+1:i*D)+2/phi(i)*x((i-1)*D+1:i*D);
         xd=x((i-1)*D+1:i*D);
         Hess((i-1)*D+1:i*D,(i-1)*D+1:i*D)=Hess((i-1)*D+1:i*D,(i-1)*D+1:i*D)+4*(xd*xd')/phi(i)^2+2/phi(i)*eye(D);
     end
-    v = -Hess\grad;
-    lambda = grad'*v; 
+    %m2=ceil(n/4);
+    %P = sjlt(m2, n, m2);
+    v = -(Hess)\grad;
+    %v = -grad./diag(Hess);
+    lambda = grad'*v;
     if abs(lambda)/2 < NTTOL, break; end;
-    step = 1; 
-    for i=1:K
-        vals(i)=1-sum((x((i-1)*D+1:i*D)+step*v((i-1)*D+1:i*D)).^2);
-    end
+    step = 1;
+    xv = x+step*v;
+    xtemp=reshape(xv,[D,K]);
+    vals=sum(xtemp.^2,1);
     
-    while any(vals<=0) %backtrack until in domain
+    while any(vals>1) %backtrack until in domain
         step = BETA*step; 
-        for i=1:K
-            vals(i)=1-sum((x((i-1)*D+1:i*D)+step*v((i-1)*D+1:i*D)).^2);
-        end
+        xv = x+step*v;
+        xtemp=reshape(xv,[D,K]);
+        vals=sum(xtemp.^2,1);
     end
     
-    %while ( c'*(x+step*v)-sum(log(b-A*(x+step*v))) > val + ALPHA*step*lambda )  
-    %    t = BETA*t; 
-    %end
-    x = x+step*v;
+    while ( t*(xv'*AA*xv-2*xv'*Ab)-sum(log(1-vals)) > val + ALPHA*step*lambda )  
+        step = BETA*step; 
+        xv = x+step*v;
+        xtemp=reshape(xv,[D,K]);
+        vals=sum(xtemp.^2,1);
+    end
+    x = xv;
     
 end

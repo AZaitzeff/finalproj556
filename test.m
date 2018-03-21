@@ -1,10 +1,10 @@
 rng(100)
-
-K=2;
-L=10;
-D=4;
-N=100;
-p=.2;
+factor=.5;
+K=ceil(100*factor);
+L=ceil(10*factor);
+D=ceil(121*factor);
+N=ceil(100*100*factor);
+p=.01;
 
 dt=randn(D,K);
 for i=1:K
@@ -27,4 +27,4 @@ for i=1:K
     d0(:,i)=d0(:,i)/(norm(d0(:,i))+.1);
 end
 z0=1.*(rand(L,N,K)<p);
-[z,d,val,t]=skecting(y,D,K,p*K*N+10,z0,d0);
+%tic;[z,d,val,t]=skecting(y,D,K,.2,z0,d0,(p*K*N+10),(p*K*N+10));toc
