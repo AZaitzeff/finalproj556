@@ -4,7 +4,7 @@ K=ceil(100*factor);
 L=ceil(10*factor);
 D=ceil(121*factor);
 N=ceil(100*100*factor);
-p=.015;
+p=.01;
 
 dt=randn(D,K);
 for i=1:K
