@@ -11,19 +11,20 @@ val0=inf;
 tol=1e-5;
 MAXITER=1000;
 for t=1:MAXITER
-    Ad=zeros(N,N*K);
+    Ad=sparse(N,N*K);
     for i=1:K
         dpad=[d(:,i)' zeros(1,N-D)];
         Ad(:,(i-1)*N+1:i*N)=toeplitz(dpad,[dpad(1) fliplr(dpad(2:end))]);
     end
-    P = sjlt(m, N, s);
+    tic;
     for i=1:L
-        zflat=reshape(z(i,:,:),[N*K 1]);
-        zflat=lassocd(Ad,y(:,i),alpha,zflat);
+        %zflat=reshape(z(i,:,:),[N*K 1]);
+        zflat=lassocd(Ad,y(:,i),alpha,sparse(N*K,1));
         %zflat=lsonecnsrt(Ad,y(:,i),alpha,zflat);%solves ||y-Dz||^2_2 with constraint on z.
         z(i,:,:)=reshape(zflat, [N K]);
     end
-    Az=zeros(N*L,D*K);%convolution Matrix z
+    toc;
+    Az=sparse(N*L,D*K);%convolution Matrix z
     for j=1:L
         for i=1:K
             ztemp=reshape(z(j,:,i),[1 N]);
@@ -33,10 +34,12 @@ for t=1:MAXITER
     end
     dflat=reshape(d,[D*K 1]);
     yflat=reshape(y,[N*L 1]);
-    m2=ceil(1.05*D*K);
+    %m2=ceil(1.05*D*K);
     %s2=ceil(log(N*L)^2);
-    P = sjlt(m2, N*L, D);
-    dflat=logbarrier(Az,yflat,dflat,10,D);%solves ||y-Zd||^2_2 with constraint on d. uses barrier method that I implemented
+    %P = sjlt(m2, N*L, D);
+    tic;
+    dflat=logbarrier(Az,yflat,dflat,100,D,100);%solves ||y-Zd||^2_2 with constraint on d. uses barrier method that I implemented
+    toc;
     d=reshape(dflat,[D K]);
     val=sum((yflat-Az*dflat).^2)+alpha*sum(abs(z(:)))
     chng=sum((d(:)-d0(:)).^2)+sum((z(:)-z0(:)).^2)

@@ -1,6 +1,6 @@
-function d=logbarrier(Z,y,d,mu,D)
+function d=logbarrier(Z,y,d,mu,D,t0)
 eps=.001;
-t=1;
+t=t0;
 MAXITER=1000;
 K=size(d,1)/D;
 for i=1:MAXITER
